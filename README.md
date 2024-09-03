@@ -21,12 +21,12 @@ Ensure you have Python 3.8 or later installed. Install the required libraries by
 
 `pip install -r requirements.txt`
 
-`python3 SubScanX`
+`python3 SubScanX.py`
 
 ## Basic UsageTo run SubScanX, use the following command structure:
           
 
-python subscanx.py domain [options]
+python3 SubScanX.py domain [options]
 ## Required Argument
 
 <domain>:The target domain you want to scan for subdomains (e.g., example.com).
@@ -54,16 +54,16 @@ python subscanx.py domain [options]
    
 ## Example Commands
         Basic Subdomain Scan:            
-        python subscanx.py example.com 
+        python3 SubScanX.py example.com 
 This command discovers subdomains of example.com and checks their HTTP status using GET requests, saving results to example.com.txt.
 
                                         Custom Request Type and Timeout:
-    python subscanx.py example.com -r POST -t 5.0
+    python3 SubScanX.py example.com -r POST -t 5.0
 This command sends POST requests to subdomains of example.com with a 5-second timeout for each request.
 Increased Concurrency:python subscanx.py example.com -c 200This command allows up to 200 concurrent HTTP requests, speeding up the scanning process.
 
                                         Save as JSON:
-        python subscanx.py example.com -f json
+        python3 SubScanX.py example.com -f json
         
 This command saves the results in a JSON file named example.com.json.
 
