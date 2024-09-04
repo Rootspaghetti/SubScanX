@@ -1,4 +1,7 @@
-requests
+subfinder
+httpx
 rich
 pyfiglet
-httpx
+selenium
+webdriver_manager
+python-whois
