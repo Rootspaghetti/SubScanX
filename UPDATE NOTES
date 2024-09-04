@@ -1,0 +1,7 @@
+### Update Notes (September 4, 2024):
+
+- **WHOIS Lookup Feature Added**: The `--whois` parameter has been introduced. This allows a WHOIS lookup to be performed before the subdomain scan begins. This feature enables users to view domain registration information prior to scanning.
+
+- **Screenshot Capture Functionality Enhanced**: The `-ss` parameter has been added. With this parameter, users can specify a specific HTTP status code. When a subdomain returns the specified status code, the tool will automatically capture a screenshot of that subdomain.
+
+These updates significantly enhance the tool's functionality and usability, providing more flexibility and detailed information for domain analysis.
