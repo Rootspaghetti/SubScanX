@@ -1,7 +1,8 @@
-subfinder
-httpx
-rich
-pyfiglet
-selenium
-webdriver_manager
-python-whois
+httpx==0.23.0
+rich==13.4.0
+pyfiglet==0.8.post1
+selenium==4.6.0
+webdriver-manager==3.8.5
+python-whois==0.7.3
+Wappalyzer==0.2.2
+requests==2.31.0
