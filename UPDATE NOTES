@@ -5,3 +5,24 @@
 - **Screenshot Capture Functionality Enhanced**: The `-ss` parameter has been added. With this parameter, users can specify a specific HTTP status code. When a subdomain returns the specified status code, the tool will automatically capture a screenshot of that subdomain.
 
 These updates significantly enhance the tool's functionality and usability, providing more flexibility and detailed information for domain analysis.
+
+### SubScanX Update Notes
+**Date: 2024-09-06**
+**New Features:**
+- **Technology Detection:**
+
+ Added a new `--detect-tech` parameter that identifies the technologies used by subdomains (CMS, server types, JavaScript frameworks, etc.).
+ This feature runs after the HTTPX results and reports technology information for each subdomain.
+- **Enhanced Visualization:** HTTPX results and technology detection outputs are displayed separately to avoid confusion.
+
+**Improvements:**
+
+- **HTTPX Results:** Improved error handling and timeout management during HTTPX requests, ensuring better management of failed connections and retries.
+- **Screenshots:** The screenshot capture feature is improved when using the `--screenshot-status` parameter to capture screenshots of subdomains with specific HTTP status codes.
+
+**Bug Fixes:**
+
+- **SSL Errors:** Better error messages and retry mechanisms for SSL handshake failures and timeout errors.
+
+- **Subfinder Integration:** Improved handling of network connection errors during subdomain scanning.
+
