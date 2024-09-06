@@ -12,6 +12,8 @@ from selenium.webdriver.firefox.options import Options
 from webdriver_manager.firefox import GeckoDriverManager
 from selenium.common.exceptions import WebDriverException
 import whois
+from Wappalyzer import Wappalyzer, WebPage
+import requests
 
 console = Console()
 
@@ -65,12 +67,12 @@ async def check_httpx(subdomain, request_type, timeout, retries=3):
 async def take_screenshot(subdomain, output_dir="screenshots"):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-    
+
     options = Options()
     options.headless = True
     driver_path = GeckoDriverManager().install()
     driver = webdriver.Firefox(executable_path=driver_path, options=options)
-    
+
     try:
         url = f"http://{subdomain}"
         driver.get(url)
@@ -83,9 +85,23 @@ async def take_screenshot(subdomain, output_dir="screenshots"):
     finally:
         driver.quit()
 
+def detect_technology(subdomain):
+    try:
+        url = f"http://{subdomain}"
+        response = requests.get(url)
+        if response.status_code == 200:
+            webpage = WebPage.new_from_response(response)
+            wappalyzer = Wappalyzer.latest()
+            technologies = wappalyzer.analyze(webpage)
+            return technologies
+        else:
+            return f"Failed to connect to {subdomain}"
+    except requests.exceptions.RequestException as e:
+        return f"Error detecting technology for {subdomain}: {e}"
+
 async def process_subdomains(subdomains, request_type, timeout, max_concurrent_tasks, progress, screenshot_status):
     semaphore = asyncio.Semaphore(max_concurrent_tasks)
-    
+
     async def sem_task(subdomain):
         async with semaphore:
             subdomain, status_code = await check_httpx(subdomain, request_type, timeout)
@@ -93,16 +109,21 @@ async def process_subdomains(subdomains, request_type, timeout, max_concurrent_t
             if screenshot_status and str(status_code) == screenshot_status:
                 await take_screenshot(subdomain)
             return subdomain, status_code
-    
+
     tasks = [sem_task(subdomain) for subdomain in subdomains]
     results = await asyncio.gather(*tasks)
     return results
+
+async def detect_technologies_for_subdomains(subdomains):
+    for subdomain in subdomains:
+        technologies = detect_technology(subdomain)
+        console.print(f"[bold magenta]Technologies for {subdomain}:[/bold magenta] {technologies}")
 
 async def display_progress(progress, total_subdomains):
     while len(progress) < total_subdomains:
         await asyncio.sleep(1)
         console.print(f"[bold yellow]Processed:[/bold yellow] {len(progress)} / {total_subdomains} subdomains")
-    
+
     console.print("[bold green]All subdomains processed.[/bold green]")
 
 def save_results_to_txt(results, filename):
@@ -113,7 +134,7 @@ def save_results_to_txt(results, filename):
 
 def display_results(results):
     sorted_results = sorted(results, key=lambda x: (isinstance(x[1], int), x[1]), reverse=True)
-    
+
     table = Table(title="HTTPX Results")
     table.add_column("Subdomain", justify="left", style="cyan", no_wrap=True)
     table.add_column("Status Code", justify="center", style="green")
@@ -144,6 +165,7 @@ async def main():
     parser.add_argument("-c", "--concurrency", type=int, default=100, help="Max number of concurrent requests (default: 100)")
     parser.add_argument("-ss", "--screenshot-status", type=str, help="HTTP status code to trigger screenshot capture")
     parser.add_argument("--whois", action="store_true", help="Perform WHOIS lookup before starting subdomain scanning")
+    parser.add_argument("--detect-tech", action="store_true", help="Detect technologies used on subdomains")
     args = parser.parse_args()
 
     if args.whois:
@@ -169,6 +191,10 @@ async def main():
     save_results_to_txt(results, output_filename)
 
     console.print(f"[bold green]Results saved to:[/bold green] {output_filename}")
+
+    if args.detect_tech:
+        console.print("[bold green]Detecting technologies for subdomains...[/bold green]")
+        await detect_technologies_for_subdomains(subdomains)
 
 if __name__ == "__main__":
     asyncio.run(main())
