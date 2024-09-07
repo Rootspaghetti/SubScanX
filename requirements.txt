@@ -1,8 +1,9 @@
-httpx==0.23.0
-rich==13.4.0
-pyfiglet==0.8.post1
-selenium==4.6.0
-webdriver-manager==3.8.5
-python-whois==0.7.3
-Wappalyzer==0.2.2
+httpx==0.24.0
+pyfiglet==0.8.
+rich==13.3.1
+selenium==4.20.0
+webdriver-manager==4.8.0
+Wappalyzer==1.0.0
+whois==0.8.0
 requests==2.31.0
+nmap==0.7.1
