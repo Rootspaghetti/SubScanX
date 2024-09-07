@@ -12,8 +12,12 @@ from selenium.webdriver.firefox.options import Options
 from webdriver_manager.firefox import GeckoDriverManager
 from selenium.common.exceptions import WebDriverException
 import whois
+import json
+import csv
 from Wappalyzer import Wappalyzer, WebPage
 import requests
+import nmap
+from datetime import datetime
 
 console = Console()
 
@@ -122,7 +126,7 @@ async def detect_technologies_for_subdomains(subdomains):
 async def display_progress(progress, total_subdomains):
     while len(progress) < total_subdomains:
         await asyncio.sleep(1)
-        console.print(f"[bold yellow]Processed:[/bold yellow] {len(progress)} / {total_subdomains} subdomains")
+        console.print(f"[bold yellow]Processed:[/bold yellow] {len(progress)} / {total_subdomains}")
 
     console.print("[bold green]All subdomains processed.[/bold green]")
 
@@ -144,57 +148,129 @@ def display_results(results):
 
     console.print(table)
 
-def perform_whois(domain):
+def perform_whois(domain, save_json=False, save_csv=False):
     try:
         whois_info = whois.whois(domain)
         console.print(f"[bold blue]WHOIS Information for {domain}:[/bold blue]")
 
-        for key, value in whois_info.items():
-            console.print(f"[bold cyan]{key}:[/bold cyan] {value}")
+        if 'domain_name' in whois_info:
+            console.print(f"[bold cyan]Domain Name:[/bold cyan] {', '.join(whois_info['domain_name'])}")
+        if 'registrar' in whois_info:
+            console.print(f"[bold cyan]Registrar:[/bold cyan] {whois_info['registrar']}")
+        if 'creation_date' in whois_info:
+            console.print(f"[bold cyan]Creation Date:[/bold cyan] {whois_info['creation_date']}")
+        if 'updated_date' in whois_info:
+            console.print(f"[bold cyan]Updated Date:[/bold cyan] {whois_info['updated_date']}")
+        if 'expiration_date' in whois_info:
+            console.print(f"[bold cyan]Expiration Date:[/bold cyan] {whois_info['expiration_date']}")
+        if 'name_servers' in whois_info:
+            console.print(f"[bold cyan]Name Servers:[/bold cyan] {', '.join(whois_info['name_servers'])}")
 
+        analyze_whois_info(whois_info)
+        analyze_whois_privacy(whois_info)
+
+        if save_json:
+            save_whois_to_json(whois_info, f"{domain}_whois.json")
+        if save_csv:
+            save_whois_to_csv(whois_info, f"{domain}_whois.csv")
     except Exception as e:
         console.print(f"[bold red]WHOIS lookup failed for {domain}: {str(e)}[/bold red]")
 
-async def main():
-    display_banner()
+def save_whois_to_json(whois_info, filename):
+    with open(filename, mode='w') as file:
+        json.dump(whois_info, file, indent=4)
 
-    parser = argparse.ArgumentParser(description="Subfinder + HTTPX CLI tool with extended features")
-    parser.add_argument("domain", help="Domain to find subdomains for")
-    parser.add_argument("-r", "--request-type", choices=["GET", "POST", "HEAD"], default="GET", help="Type of HTTP request to make (default: GET)")
-    parser.add_argument("-t", "--timeout", type=float, default=3.0, help="Timeout for each request (in seconds, default: 3.0)")
-    parser.add_argument("-c", "--concurrency", type=int, default=100, help="Max number of concurrent requests (default: 100)")
-    parser.add_argument("-ss", "--screenshot-status", type=str, help="HTTP status code to trigger screenshot capture")
-    parser.add_argument("--whois", action="store_true", help="Perform WHOIS lookup before starting subdomain scanning")
-    parser.add_argument("--detect-tech", action="store_true", help="Detect technologies used on subdomains")
+def save_whois_to_csv(whois_info, filename):
+    with open(filename, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        for key, value in whois_info.items():
+            if isinstance(value, list):
+                value = ', '.join(value)
+            writer.writerow([key, value])
+
+def analyze_whois_info(whois_info):
+    today = datetime.now()
+
+    if 'expiration_date' in whois_info and whois_info['expiration_date']:
+        expiration_date = whois_info['expiration_date']
+        if isinstance(expiration_date, list):
+            expiration_date = expiration_date[0]
+        if isinstance(expiration_date, datetime):
+            days_until_expiration = (expiration_date - today).days
+            console.print(f"[bold cyan]Domain Expiration Date:[/bold cyan] {expiration_date} ({days_until_expiration} days remaining)")
+        else:
+            console.print(f"[bold cyan]Domain Expiration Date:[/bold cyan] {expiration_date}")
+
+    if 'registrar' in whois_info:
+        registrar = whois_info['registrar']
+        console.print(f"[bold cyan]Registrar:[/bold cyan] {registrar}")
+
+def analyze_whois_privacy(whois_info):
+    if 'registrant_email' in whois_info:
+        console.print(f"[bold cyan]Registrant Email:[/bold cyan] {whois_info['registrant_email']}")
+    if 'registrant_name' in whois_info:
+        console.print(f"[bold cyan]Registrant Name:[/bold cyan] {whois_info['registrant_name']}")
+    if 'admin_email' in whois_info:
+        console.print(f"[bold cyan]Admin Email:[/bold cyan] {whois_info['admin_email']}")
+    if 'tech_email' in whois_info:
+        console.print(f"[bold cyan]Tech Email:[/bold cyan] {whois_info['tech_email']}")
+
+def perform_bulk_whois(domains, save_json=False, save_csv=False):
+    for domain in domains:
+        perform_whois(domain, save_json, save_csv)
+
+async def scan_ports(subdomain, ports):
+    nm = nmap.PortScanner()
+    nm.scan(hosts=subdomain, arguments=f'-p {ports}')
+    open_ports = [port for port in nm[subdomain]['tcp'] if nm[subdomain]['tcp'][port]['state'] == 'open']
+    return open_ports
+
+async def process_ports_for_subdomains(subdomains, ports):
+    results = {}
+    for subdomain in subdomains:
+        try:
+            open_ports = await scan_ports(subdomain, ports)
+            results[subdomain] = open_ports
+        except KeyError:
+            console.print(f"[bold red]No scan results for {subdomain}. It may not be reachable.[/bold red]")
+    return results
+
+async def main():
+    parser = argparse.ArgumentParser(description="Subdomain scanner with various features.")
+    parser.add_argument("-d", "--domain", required=True, help="The domain to scan.")
+    parser.add_argument("-r", "--request_type", choices=["GET", "POST", "HEAD"], default="GET", help="Type of HTTP request to make.")
+    parser.add_argument("-t", "--timeout", type=int, default=10, help="Timeout for HTTP requests.")
+    parser.add_argument("-m", "--max_concurrent_tasks", type=int, default=10, help="Max concurrent HTTP requests.")
+    parser.add_argument("-s", "--screenshot_status", type=str, help="Status code to trigger screenshot.")
+    parser.add_argument("-p", "--ports", type=str, help="Ports to scan (comma separated).")
+    parser.add_argument("--whois", action="store_true", help="Perform WHOIS lookup.")
+    parser.add_argument("--whois_json", action="store_true", help="Save WHOIS info as JSON.")
+    parser.add_argument("--whois_csv", action="store_true", help="Save WHOIS info as CSV.")
     args = parser.parse_args()
 
-    if args.whois:
-        perform_whois(args.domain)
+    display_banner()
 
-    console.print(f"[bold green]Finding subdomains for:[/bold green] {args.domain}")
     subdomains = run_subfinder(args.domain)
-    total_subdomains = len(subdomains)
 
     progress = []
+    if args.screenshot_status:
+        await process_subdomains(subdomains, args.request_type, args.timeout, args.max_concurrent_tasks, progress, args.screenshot_status)
+    else:
+        await process_subdomains(subdomains, args.request_type, args.timeout, args.max_concurrent_tasks, progress, None)
 
-    console.print(f"[bold green]Checking subdomains with HTTPX ({args.request_type} requests)...[/bold green]")
+    await detect_technologies_for_subdomains(subdomains)
 
-    progress_task = asyncio.create_task(display_progress(progress, total_subdomains))
+    if args.ports:
+        port_results = await process_ports_for_subdomains(subdomains, args.ports)
+        console.print(f"[bold blue]Port Scan Results:[/bold blue]")
+        for subdomain, open_ports in port_results.items():
+            console.print(f"{subdomain}: {', '.join(map(str, open_ports))}")
 
-    results = await process_subdomains(subdomains, args.request_type, args.timeout, args.concurrency, progress, args.screenshot_status)
+    display_results(progress)
+    save_results_to_txt(progress, "httpx_results.txt")
 
-    await progress_task
-
-    display_results(results)
-
-    output_filename = f"{args.domain}.txt"
-    save_results_to_txt(results, output_filename)
-
-    console.print(f"[bold green]Results saved to:[/bold green] {output_filename}")
-
-    if args.detect_tech:
-        console.print("[bold green]Detecting technologies for subdomains...[/bold green]")
-        await detect_technologies_for_subdomains(subdomains)
+    if args.whois:
+        perform_bulk_whois(subdomains, args.whois_json, args.whois_csv)
 
 if __name__ == "__main__":
     asyncio.run(main())
