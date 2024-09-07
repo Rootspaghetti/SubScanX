@@ -1,4 +1,3 @@
-```markdown
 ### SubScanX
 
 **SubScanX** is a powerful command-line tool designed for finding subdomains and checking their status using HTTPX. It combines subdomain enumeration with HTTP request validation and additional features such as screenshot capture, WHOIS lookup, and vulnerability scanning to provide a comprehensive analysis of your target domain.
