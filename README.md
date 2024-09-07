@@ -1,6 +1,7 @@
+```markdown
 ### SubScanX
 
-**SubScanX** is a powerful command-line tool designed for finding subdomains and checking their status using HTTPX. It combines subdomain enumeration with HTTP request validation and additional features such as screenshot capture, WHOIS lookup, and technology detection to provide a comprehensive analysis of your target domain.
+**SubScanX** is a powerful command-line tool designed for finding subdomains and checking their status using HTTPX. It combines subdomain enumeration with HTTP request validation and additional features such as screenshot capture, WHOIS lookup, and vulnerability scanning to provide a comprehensive analysis of your target domain.
 
 ## Features
 
@@ -11,7 +12,7 @@
 - **Progress Tracking:** Displays real-time progress and allows users to check status by pressing Enter.
 - **Screenshot Capture:** Takes screenshots of subdomains based on HTTP status codes.
 - **WHOIS Lookup:** Optionally performs a WHOIS lookup before starting subdomain scanning.
-- **Technology Detection:** Identifies technologies used by subdomains using Wappalyzer.
+- **Vulnerability Scan:** Performs a vulnerability scan using Nikto.
 - **Output Formats:** Saves results in a text file with sorted HTTP status codes.
 
 ## Installation
@@ -38,27 +39,26 @@ python3 SubScanX.py domain [options]
 
 ## Options
 
-- `-r`, `--request-type`: Specifies the type of HTTP request to send to each subdomain. Options include:
+- `-r`, `--request_type`: Specifies the type of HTTP request to send to each subdomain. Options include:
   - `GET` (default): Sends a GET request.
   - `POST`: Sends a POST request.
   - `HEAD`: Sends a HEAD request.
 
-- `-t`, `--timeout`: Sets the timeout for each HTTP request in seconds. Default is 3.0 seconds.
+- `-t`, `--timeout`: Sets the timeout for each HTTP request in seconds. Default is 10 seconds.
 
-- `-c`, `--concurrency`: Controls the maximum number of concurrent HTTP requests. The default value is 100.
+- `-m`, `--max_concurrent_tasks`: Controls the maximum number of concurrent HTTP requests. Default is 10.
 
-- `-o`, `--output`: Specifies the output file name. If not provided, the results will be saved in a file named `<domain>.txt`.
+- `-s`, `--screenshot_status`: Specifies the HTTP status code that will trigger a screenshot capture of the subdomain.
 
-- `-f`, `--format`: Defines the output file format. Options include:
-  - `csv`: Saves results as a CSV file.
-  - `json`: Saves results as a JSON file.
-  - `txt` (default): Saves results in a plain text format.
-
-- `-ss`, `--screenshot-status`: Specifies the HTTP status code that will trigger a screenshot capture of the subdomain.
+- `-p`, `--ports`: Specifies ports to scan (comma separated).
 
 - `--whois`: Performs a WHOIS lookup before starting the subdomain scan.
 
-- `--detect-tech`: Detects technologies used by the subdomains after checking their HTTP status.
+- `--whois_json`: Saves WHOIS information as a JSON file.
+
+- `--whois_csv`: Saves WHOIS information as a CSV file.
+
+- `--vuln-scan`: Performs a vulnerability scan with Nikto. Note that this may take a long time.
 
 ## Example Commands
 
@@ -81,23 +81,15 @@ python3 SubScanX.py domain [options]
 - **Increased Concurrency:**
 
   ```bash
-  python3 SubScanX.py example.com -c 200
+  python3 SubScanX.py example.com -m 200
   ```
 
   This command allows up to 200 concurrent HTTP requests, speeding up the scanning process.
 
-- **Save as JSON:**
-
-  ```bash
-  python3 SubScanX.py example.com -f json
-  ```
-
-  This command saves the results in a JSON file named `example.com.json`.
-
 - **Screenshot on Specific Status Code:**
 
   ```bash
-  python3 SubScanX.py example.com -ss 404
+  python3 SubScanX.py example.com -s 404
   ```
 
   This command will take screenshots of subdomains that return a 404 HTTP status code.
@@ -110,13 +102,29 @@ python3 SubScanX.py domain [options]
 
   This command performs a WHOIS lookup for the domain before starting the subdomain scan.
 
-- **Detect Technologies:**
+- **Save WHOIS Information as JSON:**
 
   ```bash
-  python3 SubScanX.py example.com --detect-tech
+  python3 SubScanX.py example.com --whois_json
   ```
 
-  This command detects technologies used by subdomains after checking their HTTP status.
+  This command saves the WHOIS information in a JSON file.
+
+- **Save WHOIS Information as CSV:**
+
+  ```bash
+  python3 SubScanX.py example.com --whois_csv
+  ```
+
+  This command saves the WHOIS information in a CSV file.
+
+- **Perform Vulnerability Scan:**
+
+  ```bash
+  python3 SubScanX.py example.com --vuln-scan
+  ```
+
+  This command performs a vulnerability scan with Nikto. Note that this may take a long time.
 
 ## Output
 
@@ -127,3 +135,4 @@ The results of the scan are saved in a file named after the target domain (e.g.,
 By: Root@spaghetti
 
 To report suggestions and bugs, email: rootspaghetti@gmail.com
+```
