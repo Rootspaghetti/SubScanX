@@ -23,4 +23,18 @@ These updates significantly enhance the tool's functionality and usability, prov
 - **SSL Errors:** Better error messages and retry mechanisms for SSL handshake failures and timeout errors.
 - **Subfinder Integration:** Improved handling of network connection errors during subdomain scanning.
 
+---
+
+### Update Notes (September 7, 2024, 15:30 UTC)
+
+- **`--vuln-scan`**:
+  - **Description:** This parameter triggers a vulnerability scan on subdomains found by HTTPx results. The scan may take a long time, so please consider this when running the tool.
+
+- **`--whois-json`**:
+  - **Description:** Saves WHOIS information in JSON format. This format provides a structured file containing domain registration details, ownership information, and other relevant data.
+
+- **`--whois-csv`**:
+  - **Description:** Saves WHOIS information in CSV format. The CSV file offers domain registration and ownership information in a tabular format, suitable for data analysis.
+
+---
 
