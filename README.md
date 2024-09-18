@@ -8,7 +8,6 @@
 - **HTTP Status Check:** Validates each subdomain using HTTPX with customizable request types (GET, POST, HEAD).
 - **Concurrency:** Supports concurrent requests to speed up the checking process.
 - **Customizable Timeout:** Set a timeout for each HTTP request.
-- **Progress Tracking:** Displays real-time progress and allows users to check status by pressing Enter.
 - **Screenshot Capture:** Takes screenshots of subdomains based on HTTP status codes.
 - **WHOIS Lookup:** Optionally performs a WHOIS lookup before starting subdomain scanning.
 - **Vulnerability Scan:** Performs a vulnerability scan using Nikto.
