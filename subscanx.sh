@@ -3,14 +3,14 @@
 # Renkleri tanımlıyoruz
 COLORS=("31" "32" "33" "34" "35" "36" "91" "92" "93" "94" "95" "96")
 
-# Rastgele bir renk seçiyoruz
+
 RANDOM_COLOR=${COLORS[$RANDOM % ${#COLORS[@]}]}
 
-# SubScanX ana başlık
+
 echo -e "\033[${RANDOM_COLOR}m"
 figlet "SubScanX" | lolcat
 
-# Alt başlık
+
 echo -e "\033[1;37mby: \033[1;33mRoot@Spaghetti\033[0m"
 
 # Get domain name from user input
