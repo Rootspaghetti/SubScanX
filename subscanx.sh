@@ -1,6 +1,5 @@
 #!/bin/bash
-
-# Renkleri tanımlıyoruz
+
 COLORS=("31" "32" "33" "34" "35" "36" "91" "92" "93" "94" "95" "96")
 
 
@@ -12,11 +11,10 @@ figlet "SubScanX" | lolcat
 
 
 echo -e "\033[1;37mby: \033[1;33mRoot@Spaghetti\033[0m"
-
-# Get domain name from user input
+
 read -p "Enter the domain name: " domain
 
-# Create a directory with the domain name
+
 output_dir="${domain}_results"
 mkdir -p "${output_dir}"
 
